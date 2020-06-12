@@ -3,14 +3,15 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import swal from "sweetalert";
+import Recaptcha from "react-recaptcha";
 import { Link } from "react-router-dom";
-
 const LoginSchema = Yup.object().shape({
   username: Yup.string()
     .min(2, "username is Too Short!")
     .max(50, "username is Too Long!")
     .required("Username is Required"),
-  password: Yup.string().required("Password is required")
+  recaptcha: Yup.string().required(),
+  password: Yup.string().required("Password is required"),
 });
 
 class Login extends Component {
@@ -18,39 +19,46 @@ class Login extends Component {
     super(props);
 
     this.state = {
-      alert: null
+      alert: null,
     };
   }
+  initilizeRecaptcha = (async) => {
+    const script = document.createElement("script");
+    script.src = "https://www.google.com/recaptcha/api.js";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+  };
   componentDidMount() {
+    this.initilizeRecaptcha();
     if (localStorage.getItem("TOKEN_KEY") != null) {
-      return this.props.history.push('/dashboard');
+      return this.props.history.push("/dashboard");
     }
-    let notify = this.props.match.params["notify"]
-    if(notify !== undefined){
-      if(notify == 'error'){
-        swal("Activation Fail please try again !", '', "error")
-      }else if(notify == 'success'){
-        swal("Activation Success your can login !", '', "success")
+    let notify = this.props.match.params["notify"];
+    if (notify !== undefined) {
+      if (notify == "error") {
+        swal("Activation Fail please try again !", "", "error");
+      } else if (notify == "success") {
+        swal("Activation Success your can login !", "", "success");
       }
-     
     }
   }
 
   submitForm = (values, history) => {
     axios
-      .post("http://localhost:8080/login", values)
-      .then(res => {
+      .post(process.env.REACT_APP_API_URL + "login", values)
+      // .post('http://localhost:8080/' + "login", values)
+      .then((res) => {
         if (res.data.result === "success") {
-          alert(res.data)
           localStorage.setItem("TOKEN_KEY", res.data.token);
-          swal("Success!", res.data.message, "success").then(value => {
+          swal("Success!", res.data.message, "success").then((value) => {
             history.push("/dashboard");
           });
         } else if (res.data.result === "error") {
           swal("Error!", res.data.message, "error");
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error);
         return swal("Error!", error.message, "error");
       });
@@ -62,7 +70,7 @@ class Login extends Component {
     handleChange,
     handleSubmit,
     setFieldValue,
-    isSubmitting
+    isSubmitting,
   }) => {
     return (
       <form onSubmit={handleSubmit}>
@@ -116,6 +124,21 @@ class Login extends Component {
             </small>
           ) : null}
         </div>
+        <div className="form-group">
+          <label>Recaptcha Validation</label>
+          <Recaptcha
+            sitekey={process.env.REACT_APP_RECAPCHA_KEY}
+            render="explicit"
+            theme="light"
+            verifyCallback={(response) => {
+              setFieldValue("recaptcha", response);
+            }}
+            onloadCallback={() => {
+              console.log("done loading!");
+            }}
+          />
+          {errors.recaptcha && touched.recaptcha && <p>{errors.recaptcha}</p>}
+        </div>
         <div class="row">
           <div class="col-8">
             <div class="icheck-primary">
@@ -153,7 +176,8 @@ class Login extends Component {
               <Formik
                 initialValues={{
                   username: "",
-                  password: ""
+                  password: "",
+                  recaptcha: "",
                 }}
                 onSubmit={(values, { setSubmitting }) => {
                   this.submitForm(values, this.props.history);
@@ -161,8 +185,8 @@ class Login extends Component {
                 }}
                 validationSchema={LoginSchema}
               >
-                {/* {this.showForm()}            */}
-                {props => this.showForm(props)}
+
+                {(props) => this.showForm(props)}
               </Formik>
               <p class="mb-1">
                 <Link to="/password/forgot">I forgot my password</Link>
@@ -179,4 +203,5 @@ class Login extends Component {
     );
   }
 }
+
 export default Login;

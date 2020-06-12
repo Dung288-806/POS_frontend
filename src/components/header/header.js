@@ -2,22 +2,22 @@ import React, { Component } from "react";
 import swal from "sweetalert";
 import { withRouter, Link } from "react-router-dom";
 class Header extends Component {
-  Logout = () => {
+  Logout = (e) => {
     swal("Are your sure SignOut?", {
       buttons: {
         nope: {
           text: "Let me back",
-          value: "nope"
+          value: "nope",
         },
         sure: {
           text: "I'm, Sure",
-          value: "sure"
-        }
-      }
-    }).then(value => {
+          value: "sure",
+        },
+      },
+    }).then((value) => {
       switch (value) {
         case "sure":
-          swal(" SignOut Successfully", "success").then(val => {
+          swal(" SignOut Successfully", "success").then((val) => {
             localStorage.removeItem("TOKEN_KEY");
             return this.props.history.push("/login");
           });
@@ -85,7 +85,7 @@ class Header extends Component {
               </Link>
               <div className="dropdown-divider" />
               <a
-                href="#"
+                href="javascript:;"
                 onClick={() => this.Logout()}
                 className="dropdown-item"
               >

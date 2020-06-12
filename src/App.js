@@ -9,6 +9,7 @@ import Dashboard from "./components/dashboard";
 import Profile from "./components/profile";
 import Passwordreset from "./components/passwordreset";
 import Passwordforgot from "./components/passwordforgot";
+
 import {
   BrowserRouter as Router,
   Switch,
@@ -19,10 +20,12 @@ const isLoggedIn = () => {
   return localStorage.getItem("TOKEN_KEY") != null;
 };
 
+// Protected Route
 const SecuredRoute = ({ component: Component, ...rest }) => (
   <Route
     {...rest}
     render={(props) =>
+      // ternary condition
 
       isLoggedIn() === true ? (
         <Component {...props} />
@@ -38,6 +41,7 @@ export default class App extends Component {
   }
 
   render() {
+    // const {pathname} = this.props.location;
     return (
       <Router>
         <Switch>

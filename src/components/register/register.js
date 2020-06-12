@@ -3,12 +3,13 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import swal from "sweetalert";
-
+import Recaptcha from "react-recaptcha";
 const SignupSchema = Yup.object().shape({
   username: Yup.string()
     .min(2, "username is Too Short!")
     .max(50, "username is Too Long!")
     .required("username is Required"),
+  recaptcha: Yup.string().required(),
   email: Yup.string().email("Invalid email").required("Email is Required"),
   password: Yup.string().required("Password is required"),
   confirm_password: Yup.string().oneOf(
@@ -28,9 +29,10 @@ class Register extends Component {
 
   submitForm = (values, history) => {
     axios
-      .post("http://localhost:8080/register", values)
+      .post(process.env.REACT_APP_API_URL + "register", values)
       .then((res) => {
-        if (res.data.result === "warning") {
+        console.log(res.data.result);
+        if (res.data.result === "success") {
           swal("Success!", res.data.message, "warning").then((value) => {
             history.push("/login");
           });
@@ -131,6 +133,22 @@ class Register extends Component {
             </small>
           ) : null}
         </div>
+        <div className="form-group">
+          <label>Recaptcha Validation</label>
+          <Recaptcha
+            sitekey={process.env.REACT_APP_RECAPCHA_KEY}
+            render="explicit"
+            theme="light"
+            verifyCallback={(response) => {
+              setFieldValue("recaptcha", response);
+            }}
+            onloadCallback={() => {
+              console.log("done loading!");
+            }}
+          />
+          {errors.recaptcha && touched.recaptcha && <p>{errors.recaptcha}</p>}
+        </div>
+
         <div className="row">
           <div className="col-md-12">
             <button
@@ -175,6 +193,7 @@ class Register extends Component {
                   email: "",
                   password: "",
                   confirm_password: "",
+                  recaptcha: "",
                 }}
                 onSubmit={(values, { setSubmitting }) => {
                   this.submitForm(values, this.props.history);

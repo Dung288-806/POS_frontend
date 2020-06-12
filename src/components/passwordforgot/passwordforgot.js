@@ -4,8 +4,12 @@ import * as Yup from "yup";
 import axios from "axios";
 import swal from "sweetalert";
 import { Link } from "react-router-dom";
+import Recaptcha from "react-recaptcha";
 const PasswordForgotSchema = Yup.object().shape({
-  email: Yup.string().email("Invalid email").required("Email is Required"),
+  email: Yup.string()
+    .email("Invalid email")
+    .required("Email is Required"),
+  recaptcha: Yup.string().required()
 });
 
 class Passwordforgot extends Component {
@@ -15,24 +19,24 @@ class Passwordforgot extends Component {
     this.state = {
       response: {},
       error_message: null,
-      avatar: "",
+      avatar: ""
     };
   }
 
-  submitForm = async (formData) => {
+  submitForm = async formData => {
     await axios
-      .post("http://localhost:8080/password/reset", formData)
-      .then((res) => {
+      .post(process.env.REACT_APP_API_URL + "reset", formData)
+      .then(res => {
         console.log(res.data.result);
         if (res.data.result === "success") {
-          swal("Success!", res.data.message, "success").then((value) => {
+          swal("Success!", res.data.message, "success").then(value => {
             //s window.location.reload();
           });
         } else if (res.data.result === "error") {
           swal("Error!", res.data.message, "error");
         }
       })
-      .catch((error) => {
+      .catch(error => {
         console.log(error);
         swal("Error!", "Unexpected error", "error");
       });
@@ -45,7 +49,7 @@ class Passwordforgot extends Component {
     handleSubmit,
     onSubmit,
     isSubmitting,
-    setFieldValue,
+    setFieldValue
   }) => {
     return (
       <form role="form" onSubmit={handleSubmit}>
@@ -71,7 +75,22 @@ class Passwordforgot extends Component {
             ) : null}
           </div>
         </div>
-        {/* /.card-body */}
+        <div className="form-group">
+          <label>Recaptcha Validation</label>
+          <Recaptcha
+            sitekey={process.env.REACT_APP_RECAPCHA_KEY}
+            render="explicit"
+            theme="light"
+            verifyCallback={response => {
+              setFieldValue("recaptcha", response);
+            }}
+            onloadCallback={() => {
+              console.log("done loading!");
+            }}
+          />
+          {errors.recaptcha && touched.recaptcha && <p>{errors.recaptcha}</p>}
+        </div>
+
         <div class="row">
           <div class="col-12">
             <button
@@ -107,6 +126,7 @@ class Passwordforgot extends Component {
               <Formik
                 initialValues={{
                   email: "",
+                  recaptcha: ""
                 }}
                 onSubmit={(values, { setSubmitting }) => {
                   this.submitForm(values, this.props.history);
@@ -115,7 +135,7 @@ class Passwordforgot extends Component {
                 validationSchema={PasswordForgotSchema}
               >
                 {/* {this.showForm()}            */}
-                {(props) => this.showForm(props)}
+                {props => this.showForm(props)}
               </Formik>
               <p className="mb-0">
                 <Link to="/login">Login</Link>
