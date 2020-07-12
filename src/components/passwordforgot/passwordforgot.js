@@ -25,18 +25,18 @@ class Passwordforgot extends Component {
 
   submitForm = async formData => {
     await axios
-      .post(process.env.REACT_APP_API_URL + "reset", formData)
-      .then(res => {
+      .post("https://localhost:8080/" + "reset", formData)
+      .then((res) => {
         console.log(res.data.result);
         if (res.data.result === "success") {
-          swal("Success!", res.data.message, "success").then(value => {
+          swal("Success!", res.data.message, "success").then((value) => {
             //s window.location.reload();
           });
         } else if (res.data.result === "error") {
           swal("Error!", res.data.message, "error");
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error);
         swal("Error!", "Unexpected error", "error");
       });
